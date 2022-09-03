@@ -1,4 +1,5 @@
-Group Chat APIs and Unit Testing
+Group Chat APIs and Unit Testing. 
+
 Developed by Anshuman Gogoi, email: anxumaan@gmail.com
 
 How to Run:
