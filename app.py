@@ -59,7 +59,6 @@ class User(db.Model):
 def login_is_required(function):
     def wrapper(*args, **kwargs):
         if 'username' not in session:
-            # print('Requestor: ' + session['requestor'], flush=True)
             return jsonify({'success':False, 'error_msg': "username not found"}) # Authorization required
         else:
             return function(*args, **kwargs)
@@ -69,7 +68,6 @@ def login_is_required(function):
 def admin_required(function):
     def wrapper(*args, **kwargs):
         if "type" not in session or session['type']!='admin':
-            # print('Requestor: ' + session['requestor'], flush=True)
             return jsonify({'success':False}) # Authorization required
         else:
             return function(*args, **kwargs)
@@ -86,17 +84,13 @@ def html_home():
 def login():
     if request.method == 'POST':
         uname,pword="",""
-        # using HTML Forms
         try:
             data=request.get_json()
             uname=data['username']
             pword=data['password']
-
-        # using application/json request
         except Exception as e:
             print(e)
             return jsonify({'success': False})
-        # print(encrypt(password))
         encrypted=encrypt(pword)
         user=User.query.filter_by(username=uname).first()
         if user and checkpassword(pword, user.password):
@@ -116,7 +110,6 @@ def login():
 def signup():
     if request.method == 'POST':
         uname,pword="",""
-        # using HTML Forms
         try:
             data=request.get_json()
             uname=data['username']
@@ -137,7 +130,7 @@ def signup():
     return "Signup API"
 
 
-#API for admin to add/create new users
+#route for admin to add/create new users
 @app.route('/api/v1/add_user', methods=['GET', 'POST'])
 @login_is_required
 @admin_required
@@ -147,13 +140,8 @@ def add_user():
         uname,pword="","password"
         # using HTML Forms
         try:
-            if request.form:
-                uname=request.form['username']
-            else:
-                data=request.get_json()
-                uname=data['username']
-
-        # using application/json request
+            data=request.get_json()
+            uname=data['username']
         except Exception as e:
             print(e)
             return jsonify({'success': False})
@@ -170,24 +158,17 @@ def add_user():
     return "Adding Normal User API"
 
 
-#API to change password
+#route to change password
 @app.route('/api/v1/change_password', methods=['GET', 'POST'])
 @login_is_required
 def change_password():
     if request.method == 'POST':
         uname=session['username']
         pword=""
-        # using HTML Forms
         try:
-            if request.form:
-                pword=request.form['password']
-                new_pword=request.form['new_password']
-            else:
-                data=request.get_json()
-                pword=data['password']
-                new_pword=data['new_password']
-
-        # using application/json request
+            data=request.get_json()
+            pword=data['password']
+            new_pword=data['new_password']
         except Exception as e:
             print(e)
             return jsonify({'success': False})
@@ -206,7 +187,7 @@ def change_password():
             return jsonify({'success': False})
     return "Password Change API"
 
-#API for admins to edit user details
+#route for admins to edit user details
 @app.route('/api/v1/edit_user', methods=['GET', 'POST'])
 @login_is_required
 @admin_required
@@ -245,7 +226,7 @@ def logout():
 
 #Group APIs for normal user
 
-#Create Groups
+#Route to create Groups
 @app.route("/api/v1/create_group", methods=['GET','POST'])
 @login_is_required
 def create_group():
@@ -276,7 +257,7 @@ def create_group():
 
     return "group created"
 
-#Delete Groups
+#route to Delete Groups
 @app.route("/api/v1/delete_group/<id>", methods=['GET','POST'])
 @login_is_required
 def delete_group(id):
@@ -293,7 +274,7 @@ def delete_group(id):
         print(e)
         return jsonify({'success': False})
 
-#Search Groups
+#route to Search/view Groups
 @app.route("/api/v1/search_groups", methods=['GET','POST'])
 @login_is_required
 def search_groups():
@@ -310,7 +291,7 @@ def search_groups():
     final_data={'group_data':group_data, 'success': True}
     return jsonify(final_data)
 
-#Add Members to a group
+#route to Add Members to a group
 @app.route("/api/v1/add_members/<group_id>/<user_id>", methods=['GET','POST'])
 @login_is_required
 def add_members(group_id,user_id):
@@ -328,7 +309,7 @@ def add_members(group_id,user_id):
         print(e)
         return jsonify({'success': False})
 
-#Send Message to a group
+#route to Send Message to a group
 @app.route("/api/v1/send_message/<group_id>", methods=['GET','POST'])
 @login_is_required
 def send_message(group_id):
@@ -347,7 +328,6 @@ def send_message(group_id):
             print(group.users)
             if user in group.users:
                 chat=Chat(message=message)
-                # print("Debug")
                 group.chats.append(chat)
                 chat.chat_by.append(user)
                 db.session.add(chat)
@@ -360,7 +340,7 @@ def send_message(group_id):
 
     return "Sending message"
 
-#like Message
+#Route for liking Message
 @app.route("/api/v1/like_message/<chat_id>", methods=['GET','POST'])
 @login_is_required
 def like_message(chat_id):
@@ -375,7 +355,7 @@ def like_message(chat_id):
         print(e)
         return jsonify({'success': False})
 
-#view group messages
+#route to view group messages
 @app.route("/api/v1/view_message/<group_id>", methods=['GET','POST'])
 @login_is_required
 def view_message(group_id):
@@ -388,15 +368,13 @@ def view_message(group_id):
             "message": chat.message,
             "chat_by_id": chat.chat_by[0].id,
             "chat_by_name": chat.chat_by[0].username,
-            "liked_by_id": chat.liked_by,
+            "liked_by_id": [x.id for x in chat.liked_by],
             "timestamp": chat.time
             }
             message_data.append(data)
-        print(message_data)
-        final_data={
-            "message_data": message_data,
-            "success": True
-        }
+            
+        final_data={'message_data':message_data, 'success': True}
+        print(final_data)
         return jsonify(final_data)
     except Exception as e:
         print(e)

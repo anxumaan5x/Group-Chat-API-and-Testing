@@ -22,7 +22,3 @@ def checkpassword(password, hash):
     # checking password
     result = bcrypt.checkpw(userBytes, hash)
     return result
-
-
-# encrypt("password")
-# checkpassword('password', '$2b$12$eWs5xKCNoljiSwGcO65rNuIcg1freaQNaEZw79xqZZjmM3QmOZRaC')

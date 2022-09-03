@@ -130,5 +130,13 @@ class FlaskTest(unittest.TestCase):
         statuscode=response.status_code
         self.assertEqual(statuscode,200) and self.assertEqual(response.content_type, "application/json") and self.assertTrue(b'success' in response.data)
 
+    # Testing logout API
+    def test_logout(self):
+        tester=app.test_client(self)
+        print("trying to logout")
+        response = tester.post('/api/v1/logout')
+        statuscode=response.status_code
+        self.assertEqual(statuscode,200) and self.assertEqual(response.content_type, "application/json") and self.assertTrue(b'success' in response.data)
+
 if __name__=="__main__":
     unittest.main()
